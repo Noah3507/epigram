@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Pretendard-Regular';
+  src: url('../public/fonts/Pretendard-Regular.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  /* font-weight : 400 */
+  font-family: 'Pretendard';
+  src: url('../public/fonts/Pretendard-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  /* font-weight : 600 */
+  font-family: 'Pretendard-SemiBold';
+  src: url('../public/fonts/Pretendard-SemiBold.ttf') format('truetype');
+}
+
+@font-face {
+  /* font-weight : 700 */
+  font-family: 'Pretendard-Bold';
+  src: url('../public/fonts/Pretendard-Bold.ttf') format('truetype');
+}
+
+@font-face {
+  /* font-weight : 700 */
+  font-family: 'IropkeBatangM';
+  src: url('../public/fonts/IropkeBatangM.woff') format('truetype');
+}
+
+
+
+body {
+  outline: none;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  background-color: #f7f9fc;
+  white-space: pre-line;
+  font-family: 'Pretendard-Regular';
+  letter-spacing: -0.375px;
+}
+
+label {
+  cursor: pointer;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera*/
+}
+
+a {
+  cursor: pointer;
+}
