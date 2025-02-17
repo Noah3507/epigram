@@ -27,8 +27,15 @@
   src: url('../public/fonts/Pretendard-Bold.ttf') format('truetype');
 }
 
+@font-face {
+  /* font-weight : 700 */
+  font-family: 'IropkeBatangM';
+  src: url('../public/fonts/IropkeBatangM.woff') format('truetype');
+}
 
-* {
+
+
+body {
   outline: none;
   box-sizing: border-box;
   margin: 0;
@@ -49,13 +56,6 @@ label {
 }
 .hide-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera*/
-}
-
-:root {
-  --white:#fff;
-  --blue-200:#ECEFF4;
-  --blue-300:#CBD3E1;
-  --blue-400:#ABB8CE;
 }
 
 a {

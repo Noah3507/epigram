@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState, use } from 'react';
 import styled from 'styled-components';
-import { createEpigram } from '@/lib/apis/epigram';
+import { updateEpigram, getEpigramDetail } from '@/lib/apis/epigram';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store/authStore';
 
-export default function AddEpigramPage() {
+export default function EditEpigramPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { id } = use(params);
+  const epigramId = parseInt(id, 10);
 
   const [formData, setFormData] = useState({
     tags: '',
@@ -18,31 +18,29 @@ export default function AddEpigramPage() {
     content: '',
   });
   const [message, setMessage] = useState('');
-  const [error, setError] = useState({ content: '', tags: '' });
+
+  useEffect(() => {
+    const fetchEpigram = async () => {
+      try {
+        const response = await getEpigramDetail(epigramId);
+        const tagsString = response.tags.map((tag: any) => tag.name).join(', ');
+        setFormData({
+          tags: tagsString,
+          referenceUrl: response.referenceUrl,
+          referenceTitle: response.referenceTitle,
+          author: response.author,
+          content: response.content,
+        });
+      } catch (error) {
+        console.error('에피그램 데이터를 불러오지 못했습니다:', error);
+      }
+    };
+
+    fetchEpigram();
+  }, [epigramId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-
-    if (name === 'content' && value.length > 150) {
-      setError((prev) => ({ ...prev, content: '내용은 최대 150자까지 입력 가능합니다.' }));
-      return;
-    } else {
-      setError((prev) => ({ ...prev, content: '' }));
-    }
-
-    if (name === 'tags') {
-      const tagsArray = value.split(',').map((tag) => tag.trim());
-      if (tagsArray.length > 3) {
-        setError((prev) => ({ ...prev, tags: '태그는 최대 3개까지 입력 가능합니다.' }));
-        return;
-      }
-      if (tagsArray.some((tag) => tag.length > 10)) {
-        setError((prev) => ({ ...prev, tags: '각 태그는 최대 10자까지 입력 가능합니다.' }));
-        return;
-      }
-      setError((prev) => ({ ...prev, tags: '' }));
-    }
-
     setFormData({ ...formData, [name]: value });
   };
 
@@ -52,7 +50,7 @@ export default function AddEpigramPage() {
     const tagsArray = formData.tags.split(',').map((tag) => tag.trim());
 
     try {
-      const response = await createEpigram({
+      await updateEpigram(epigramId, {
         tags: tagsArray,
         referenceUrl: formData.referenceUrl,
         referenceTitle: formData.referenceTitle,
@@ -60,28 +58,11 @@ export default function AddEpigramPage() {
         content: formData.content,
       });
 
-      setMessage('에피그램이 성공적으로 추가되었습니다!');
-      router.push(`/epigrams/${response.id}`);
-      setFormData({
-        tags: '',
-        referenceUrl: '',
-        referenceTitle: '',
-        author: '',
-        content: '',
-      });
+      setMessage('에피그램이 성공적으로 수정되었습니다!');
+      router.push('/epigramlist');
     } catch (error) {
-      console.error('에피그램 추가 실패:', error);
-      if (error instanceof Error && 'response' in error) {
-        const axiosError = error as { response?: { data?: any } };
-
-        alert(
-          axiosError.response?.data?.message || '에피그램 추가에 실패했습니다. 다시 시도해주세요.',
-        );
-      } else {
-        console.error('알 수 없는 로그인 오류:', error);
-        alert('에피그램 추가 중 오류가 발생했습니다.');
-      }
-      setMessage('에피그램 추가에 실패했습니다. 다시 시도해주세요.');
+      console.error('수정 실패:', error);
+      setMessage('에피그램 수정에 실패했습니다. 다시 시도해주세요.');
     }
   };
 
@@ -89,7 +70,7 @@ export default function AddEpigramPage() {
     <Container>
       <InnerFormBox>
         <Form onSubmit={handleSubmit}>
-          <TitleText>에피그램 만들기</TitleText>
+          <TitleText>에피그램 수정하기</TitleText>
           <Label>
             내용<span>*</span>
           </Label>
@@ -97,10 +78,9 @@ export default function AddEpigramPage() {
             name="content"
             value={formData.content}
             onChange={handleChange}
-            placeholder="150자 이내로 입력해주세요."
-            // maxLength={150}
+            placeholder="200자 이내로 입력해주세요."
           ></TextArea>
-          {error.content && <ErrorMessage>{error.content}</ErrorMessage>}
+
           <Label>
             저자<span>*</span>
           </Label>
@@ -127,19 +107,17 @@ export default function AddEpigramPage() {
               />
               <label htmlFor="unknown">알 수 없음</label>
             </RadioOption>
-            {user && (
-              <RadioOption>
-                <input
-                  type="radio"
-                  id="self"
-                  name="authorOption"
-                  value="본인"
-                  checked={formData.author === user?.nickname}
-                  onChange={() => setFormData({ ...formData, author: user?.nickname })}
-                />
-                <label htmlFor="self">본인</label>
-              </RadioOption>
-            )}
+            <RadioOption>
+              <input
+                type="radio"
+                id="self"
+                name="authorOption"
+                value="본인"
+                checked={formData.author === '본인'}
+                onChange={() => setFormData({ ...formData, author: '본인' })}
+              />
+              <label htmlFor="self">본인</label>
+            </RadioOption>
           </RadioGroup>
 
           <Input
@@ -175,7 +153,7 @@ export default function AddEpigramPage() {
             placeholder="태그 작성 (예: 태그1, 태그2)"
           />
 
-          <SubmitButton type="submit">작성 완료</SubmitButton>
+          <SubmitButton type="submit">수정 완료</SubmitButton>
           {message && <Message>{message}</Message>}
         </Form>
       </InnerFormBox>
@@ -279,11 +257,6 @@ const Message = styled.p`
   margin-top: 16px;
   font-size: 14px;
   color: #2d394e;
-`;
-const ErrorMessage = styled.p`
-  font-size: 14px;
-  color: red;
-  margin-top: 4px;
 `;
 
 const RadioGroup = styled.div`
